@@ -98,3 +98,76 @@ $$
 \end{bmatrix}
 $$
 
+3. 更新参数
+$$\theta^1$$
+:
+
+$$
+\theta^1=\theta^0-\eta*g
+$$
+
+4. 反复迭代
+$$\theta$$
+
+<div style="background: #fff3e6; border-radius: 8px; padding: 1em; border: 1px solid #ffd7b3;">
+  <p style="margin: 0; font-size: 16px;">
+    <strong>PS：</strong><br>
+    1. 对于大batch（批量）数据集，我们通常随机分成N份小batch数据集，每次使用一份小batch更新参数。
+  </p>
+  <p style="margin: 1em 0 0; font-size: 16px;"><strong>2. 名词：</strong></p>
+  <ul style="margin: 0.5em 0 0 1.5em; padding: 0; font-size: 16px;">
+    <li><code>batch</code>：批量</li>
+    <li><code>epoch</code>：所有的批量（训练轮次）</li>
+    <li><code>Rate</code>：学习率，η</li>
+    <li><code>hyperparameter</code>：超参数，用户自己设置的参数</li>
+    <li><code>parameter</code>：参数，模型自己学习的参数</li>
+    <li><code>Neuron</code>：神经元</li>
+    <li><code>Neural Network</code>：神经网络</li>
+    <li><code>Hidden Layer</code>：隐藏层</li>
+    <li><code>Deep Learning</code>：深度学习</li>
+    <li><code>Overfitting</code>：过拟合</li>
+    <li><code>Underfitting</code>：欠拟合</li>
+    <li><code>Backpropagation</code>：反向传播</li>
+  </ul>
+</div>
+
+# 激活函数
+## 1、ReLU
+
+$$
+表达式：y = c*max(0,b+wx_1)
+$$
+
+![](../assets/2026-05-08-02-03-45.png)
+
+拟合后的函数：
+
+$$
+y = b + \sum_{i}{c_i*max(0,b_i+\sum_j{w_{ij}x_j})}
+$$
+
+## 2、Sigmoid
+
+$$
+\text{表达式：}
+\begin{equation}
+\begin{split}
+y &= c*\frac{1}{1 + e^{-(b + wx_1)}}\\
+&= c*{sigmoid(b + wx_1)} 
+\end{split}\nonumber
+\end{equation}
+$$
+
+![](../assets/2026-05-08-02-04-31.png)
+
+拟合后的函数：
+
+$$
+\begin{equation}
+\begin{split}
+y &= b + \sum_i{c_i*sigmoid(b_i + \sum_j{w_{ij}x_j})}\\
+&=b + C^T*\sigma(B+WX)
+\end{split}\nonumber
+\end{equation}
+$$
+
