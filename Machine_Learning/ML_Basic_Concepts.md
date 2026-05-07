@@ -171,7 +171,7 @@ $$
 \end{equation}
 $$
 
-PS:
+PS: Sigmoid-->ReLU:
 
 $$
 y = b + \sum_{2i}{c_i*max(0,b_i+\sum_j{w_{ij}x_j})}
