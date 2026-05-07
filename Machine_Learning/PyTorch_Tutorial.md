@@ -163,7 +163,7 @@ custom_channels:
 ![](../assets/2026-05-08-00-54-26.png)
 
 ## 1.3、PyTorch安装
-1. 打开Pytorch官网（https://pytorch.org/），选择对应版本
+1. 打开 [Pytorch官网](https://pytorch.org/)，选择对应版本
 
 ![](../assets/2026-05-08-00-54-42.png)
 
