@@ -1361,8 +1361,10 @@ print(df.T)
 `pd.melt()` 就是 把宽表格 → 变成长表格 的 pandas 函数！
 - 宽表：科目（数学、英语、物理）都是列
 - 长表：只有两列：变量(科目) + 值(分数)
+
 原数据：
 ![](../assets/2026-05-07-23-57-00.png)
+
 melt后：
 ```python
 #df：宽表，id_vars:保持不动的列（标识列）,var_name:新的变量列名,value_name：新的数据列名
@@ -1372,8 +1374,10 @@ print(df2.sort_values('name'))
 ![](../assets/2026-05-07-23-57-20.png)
 ### 9.4.3、长表转宽表
 `pd.pivot()` = 长表 → 还原成宽表
+
 原数据：
 ![](../assets/2026-05-07-23-57-57.png)
+
 pivot后：
 ```python
 #df2:长表,index:行索引是谁,columns:每一行变成什么列,values:单元格填什么值
@@ -1393,8 +1397,10 @@ print(df3)
   - 不加的话只会变成列表，无法拆分
 - `df[['first','last']] = `
   - 把切开的两列分别赋值给 first、last
+
 原数据：
 ![](../assets/2026-05-07-23-59-26.png)
+
 split后：
 ```python
 #把 name 列按空格切开，分成两列，分别叫 first 和 last。
@@ -1601,12 +1607,14 @@ df = pd.DataFrame(data)
 print(df.groupby('班级')['分数'].sum())
 ```
 ![](../assets/2026-05-08-00-09-20.png)
+
 多分组+多聚合
 ```python
 # 按班级分组，同时计算总分、平均分、最高分
 print(df.groupby('班级')['分数'].agg(['sum', 'mean', 'max']))
 ```
 ![](../assets/2026-05-08-00-09-36.png)
+
 多列分组 + 不同列不同聚合
 ```python
 # 扩展数据后演示
@@ -1615,7 +1623,9 @@ df['年龄'] = [18,19,18,19,18]
 print(df.groupby('班级').agg({'分数':'sum', '年龄':'mean'}))
 ```
 ![](../assets/2026-05-08-00-09-54.png)
+
 重置索引（变成普通表格）
+
 `groupby` 默认会把分组字段变成索引，用 `reset_index()` 还原成普通表格：
 ```python
 # 推荐写法
@@ -1623,11 +1633,13 @@ result = df.groupby('班级')['分数'].sum().reset_index()
 print(result)
 ```
 ![](../assets/2026-05-08-00-10-22.png)
+
 查看分组
 ```python
 print(df.groupby('班级').groups)
 ```
 ![](../assets/2026-05-08-00-10-36.png)
+
 查看具体的某个分组数据
 ```python
 print(df.groupby('班级').get_group('一班'))
