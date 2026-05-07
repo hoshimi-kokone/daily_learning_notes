@@ -61,7 +61,7 @@ $$L = \frac{1}{N} \sum{e_n}$$
 最优参数:
 
 $$
-w^{*},b^{*} = arg{min\atop{w,b}}L
+w^{\text{*}},b^{\text{*}} = arg{min\atop{w,b}}L
 $$
 
 1. 随机设置
