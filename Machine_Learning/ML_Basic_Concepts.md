@@ -170,3 +170,25 @@ $$
   \end{split}
 \end{equation}
 $$
+
+<div style="background: #fff3e6; border-radius: 8px; padding: 1em; border: 1px solid #ffd7b3;">
+  <p style="margin: 0; font-size: 16px;"><strong>Sigmoid ---> ReLU:</strong></p>
+  <div style="text-align: center; margin: 1em 0; font-size: 20px;">
+    \( y = b + \sum_{2i} c_i \cdot max(0, b_i + \sum_{j} w_{ij}x_j) \)
+  </div>
+</div>
+
+# 机器学习中常用的字符
+
+- $$x$$
+: input/feature
+- $$y$$
+: output/target
+- $$m$$
+: number of training examples
+- $$(x,y)$$
+: single training example
+- $$(x^{（i）},y^{（i）})$$
+: 
+$$i^{th}$$
+training example
