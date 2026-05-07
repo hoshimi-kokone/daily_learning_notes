@@ -57,10 +57,11 @@ $$L = \frac{1}{N} \sum{e_n}$$
 
 # 3、Optimization（最优化）
 `Optimization`会通过`Gradient Descent`（梯度下降）的方法获得（局部）最优的参数。
+
 最优参数:
 
 $$
-w^*,b^* = arg{min\atop{w,b}}L
+w^{*},b^{*} = arg{min\atop{w,b}}L
 $$
 
 1. 随机设置
