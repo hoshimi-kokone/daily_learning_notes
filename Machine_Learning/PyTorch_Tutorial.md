@@ -33,7 +33,7 @@
 ![](../assets/2026-05-08-00-47-57.png)
 
 ## 1.2、minicoda安装
-1. 打开清华园镜像网站（`https://mirrors.tuna.tsinghua.edu.cn/`），搜索Anaconda并点击anaconda
+1. 打开[清华园镜像网站]（https://mirrors.tuna.tsinghua.edu.cn/），搜索Anaconda并点击anaconda
 
 ![](../assets/2026-05-08-00-48-13.png)
 
