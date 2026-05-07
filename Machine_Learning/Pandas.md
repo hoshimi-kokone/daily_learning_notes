@@ -458,6 +458,119 @@ print(s.isin([4，5，6]))
 ![](../assets/2026-05-07-22-14-55.png)
 ### 5.4.8、统计函数
 分位数计算公式:
+
 $$index = (n-1)*q\text{ (n为数组长度，q为分位数比例)}$$
+
 $$index = k+f\text{ (k为整数部分，f为小数部分)}$$
+
 $$value = x_k + f*(x_{k+1} - x_k)$$
+
+```python
+import pandas as pd
+import numpy as np
+s = pd.Series([10,2,np.nan,None,3,4,5],index=['A','B','C','D','E','F','G'])
+print(s.mean())
+print(s.std())
+print(s.var())
+print(s.sum())
+print(s.max())
+print(s.min())
+print(s.quantile(.25))
+print(s.quantile(.50))
+print(s.quantile(.75))
+print(s.median())
+print(s.mode())
+```
+![](../assets/2026-05-07-23-27-15.png)
+### 5.4.9、sort_values()
+按值排序
+```python
+import pandas as pd
+import numpy as np
+s = pd.Series([10,2,np.nan,None,3,4,5],index=['A','B','C','D','E','F','G'])
+print(s.sort_values())
+```
+![](../assets/2026-05-07-23-27-39.png)
+### 5.4.10、value_counts()
+把Series中所有非缺失值计数
+```python
+import pandas as pd
+import numpy as np
+s = pd.Series([10,2,np.nan,None,3,4,5],index=['A','B','C','D','E','F','G'])
+print(s.value_counts())
+```
+![](../assets/2026-05-07-23-28-04.png)
+### 5.4.11、drop_duplicates()
+与s.unique()作用相同，都是去重，但是s.drop_duplicates()返回的是Series数据类型，s.unique()返回的是ndarray
+```python
+import pandas as pd
+import numpy as np
+s = pd.Series([10,2,np.nan,None,3,4,5],index=['A','B','C','D','E','F','G'])
+print(s.drop_duplicates())
+```
+![](../assets/2026-05-07-23-28-27.png)
+### 5.4.12、unique()
+```python
+import pandas as pd
+import numpy as np
+s = pd.Series([10,2,np.nan,None,3,4,5],index=['A','B','C','D','E','F','G'])
+print(s.unique())
+```
+![](../assets/2026-05-07-23-28-44.png)
+### 5.4.13、nunique()
+统计去重后元素的个数
+```python
+import pandas as pd
+import numpy as np
+s = pd.Series([10,2,np.nan,None,3,4,5],index=['A','B','C','D','E','F','G'])
+print(s.nunique())
+```
+![](../assets/2026-05-07-23-29-03.png)
+### 5.4.13、sort_index()
+按索引排序
+```python
+import pandas as pd
+import numpy as np
+s = pd.Series([10,2,np.nan,None,3,4,5],index=['A','B','C','D','E','F','G'])
+print(s.sort_index())
+```
+![](../assets/2026-05-07-23-29-27.png)
+### 5.4.14、diff()
+s.diff () = 后一个数 − 前一个数
+常用参数：
+- periods = n
+  - `diff(1)`：后 − 前
+  - `diff(2)`：当前 − 前两行
+  - `diff(-1)`：前 − 后（往前减）
+```python
+import pandas as pd
+s = pd.Series([1,2,3,4,5,6,7,8,9])
+print(s.diff())
+```
+![](../assets/2026-05-07-23-29-54.png)
+### 5.4.15、shift()
+整体上下平移数据，索引不动，数值挪位置
+语法：
+- `s.shift(periods=1, fill_value=np.nan)`
+  - `periods>0`：向下移（数据往下滚，上面补 `NaN`）
+  - `periods<0`：向上移（数据往上滚，下面补 `NaN`）
+  - 默认空位补 `NaN`
+```python
+import pandas as pd
+s = pd.Series([1,2,3,4,5,6,7,8,9])
+print(s)
+```
+![](../assets/2026-05-07-23-31-15.png)
+```python
+print(s.shift())
+```
+![](../assets/2026-05-07-23-31-28.png)
+```python
+print(s.shift(2))
+```
+![](../assets/2026-05-07-23-31-44.png)
+### 5.4.16、pct_change()
+计算环百分比变化 =  $$\frac{\text{当前值 - 前一期值}}{前一期值}$$ = $$\frac{当前值}{前一期值}-1$$
+
+语法：
+`s.pct_change(periods=1)`
