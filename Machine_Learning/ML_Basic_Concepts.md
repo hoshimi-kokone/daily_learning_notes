@@ -42,3 +42,56 @@ $$L(\theta)$$
 ,
 $$\theta$$
 是包含所有未知参数的列向量。
+
+表达式:
+
+$$L = \frac{1}{N} \sum{e_n}$$
+
+- $$e_n$$
+:预测值和实际值之间的差距
+  - $$e_n = \mid{y-f(x)}\mid$$
+  ：绝对值误差，MAE（Mean Absolute Error）。
+  - $$e_n = (y - f(x))^2$$
+  ：平方差误差，MSE（Mean Square Error）。
+  - 。。。
+
+# 3、Optimization（最优化）
+`Optimization`会通过`Gradient Descent`（梯度下降）的方法获得（局部）最优的参数。
+最优参数:
+
+$$w^*,b^* = arg{min\atop{w,b}}L $$
+
+1. 随机设置
+$$w_0,b_0$$
+2. 计算
+$$w_0,b_0$$
+位置的偏导:
+
+$$\frac{\partial{L}}{\partial{w}}\mid_{w = w_0,b = b_0}，\frac{\partial{L}}{\partial{b}}\mid_{w = w_0,b = b_0}$$
+
+3. updata参数
+$$w_1,b_1$$
+:
+
+$$w_1 = w_0 - \eta\frac{\partial{L}}{\partial{w}}\mid_{w = w_0,b = b_0}，b_1 = b_0 - \eta\frac{\partial{L}}{\partial{b}}\mid_{w = w_0,b = b_0}$$
+
+4、反复迭代
+$$w,b$$
+
+扩展：
+1. 随机设置
+$$\theta^0$$
+2. 计算
+$$\theta^0$$
+的梯度
+$$g$$
+:
+
+$$
+\large{g\atop{gradient}} = \begin{bmatrix}
+\frac{\partial{L}}{\partial{\theta_1}}\mid_{\theta=\theta^0}\\
+\frac{\partial{L}}{\partial{\theta_2}}\mid_{\theta=\theta^0}\\
+...
+\end{bmatrix}
+$$
+
