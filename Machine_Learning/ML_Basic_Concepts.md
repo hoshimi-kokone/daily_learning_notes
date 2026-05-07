@@ -164,10 +164,9 @@ $$
 
 $$
 \begin{equation}
-\begin{split}
-y &= b + \sum_i{c_i*sigmoid(b_i + \sum_j{w_{ij}x_j})}\\
-&=b + C^T*\sigma(B+WX)
-\end{split}\nonumber
+  \begin{split}
+    y &= b + \sum_{i}{c_{i}*sigmoid(b_{i} + \sum_{j}{w_{ij}x_{j}})}\\
+    &= b + c^{T} * \sigma(B + WX)
+  \end{split}
 \end{equation}
 $$
-
