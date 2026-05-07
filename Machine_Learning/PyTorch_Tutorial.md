@@ -10,7 +10,7 @@
 
 ![](../assets/2026-05-08-00-46-52.png)
 
-3. 打开cuda官网（https://developer.nvidia.com/cuda-toolkit-archive），选择对应版本，开始下载
+3. 打开 [cuda官网](https://developer.nvidia.com/cuda-toolkit-archive)，选择对应版本，开始下载
 
 ![](../assets/2026-05-08-00-47-07.png)
 
@@ -33,7 +33,7 @@
 ![](../assets/2026-05-08-00-47-57.png)
 
 ## 1.2、minicoda安装
-1. 打开[清华园镜像网站]（https://mirrors.tuna.tsinghua.edu.cn/），搜索Anaconda并点击anaconda
+1. 打开 [清华园镜像网站](https://mirrors.tuna.tsinghua.edu.cn/)，搜索Anaconda并点击anaconda
 
 ![](../assets/2026-05-08-00-48-13.png)
 
