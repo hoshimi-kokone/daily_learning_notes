@@ -49,9 +49,37 @@ MySQL 是一款**开源关系型数据库管理系统（RDBMS）**，由瑞典 M
 - 指定主机和端口连接（适用于远程连接）：`mysql -h 主机名或IP地址 -P 端口号 -u 用户名 -p`
 例如：`mysql -h 127.0.0.1 -P 3306 -u root -p`
 
+> 要连接远程数据库，必须开通远程访问且防火墙能够通过。
+
 #### 第三方软件，如 DataGrip
 
-。。。
+##### 安装JetBrain的DataGrip开发工具。
+
+![](../assets/2026-09-21-16-20-14.png)
+
+##### 创建项目
+
+![](../assets/2026-09-21-16-32-55.png)
+
+![](../assets/2026-09-21-16-33-08.png)
+
+##### 创建数据源
+
+![](../assets/2026-09-21-16-49-15.png)
+
+![](../assets/2026-09-21-16-49-50.png)
+
+> 首次连接数据库时需要下载驱动程序，点击测试链接后弹窗下载。
+
+##### 使用查询控制台测试连接成功
+
+![](../assets/2026-09-21-16-59-47.png)
+
+![](../assets/2026-09-21-17-01-23.png)
+
+> 快捷键：
+> 1、Ctrl + Enter 可以快速执行一段代码
+> 2、选中一段代码，Ctrl + / 快速注释
 
 ## 管理MySQL的命令
 
@@ -126,7 +154,7 @@ mysql> SHOW INDEX FROM runoob_tbl;
 1 row in set (0.00 sec)
 ```
 
-- `SHOW TABLES STATUS [FROM db_name] [LIKE 'pattern'] \G`：该命令将输出MySQL数据库管理系统的性能及统计信息。
+- `SHOW TABLE STATUS [FROM db_name] [LIKE 'pattern'] \G`：该命令将输出MySQL数据库管理系统的性能及统计信息。
 
 ```SQL
 mysql> SHOW TABLE STATUS  FROM RUNOOB;   # 显示数据库 RUNOOB 中所有表的信息
@@ -134,3 +162,41 @@ mysql> SHOW TABLE STATUS from RUNOOB LIKE 'runoob%';     # 表名以runoob开头
 mysql> SHOW TABLE STATUS from RUNOOB LIKE 'runoob%'\G;   # 加上 \G，查询结果按列打印
 ```
 
+## MySQL基本语法
+
+### 1、展示所有的库
+
+```sql
+SHOW databases;
+```
+
+### 2、切换库
+
+```sql
+USE sys;
+```
+
+### 3、展示所有的表
+
+```sql
+SHOW tables;
+```
+
+### 4、查询表中有什么数据
+
+```sql
+USE mysql;
+SELECT * FROM user;
+```
+
+等价于：
+
+```sql
+SELECT * FROM mysql.user;
+```
+
+### 5、注释
+
+- `#`：单行注释，MySQL方言
+- `-- `：单行注释
+- `/* */`：多行注释
