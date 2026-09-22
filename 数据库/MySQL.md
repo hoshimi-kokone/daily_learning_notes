@@ -200,3 +200,10 @@ SELECT * FROM mysql.user;
 - `#`：单行注释，MySQL方言
 - `-- `：单行注释
 - `/* */`：多行注释
+
+## MySQL常见数据类型
+
+- 整数 int(4B) / tinyint(1B) / smallint(2B) / mediumint(3B) / bigint(8B)
+- 浮点数 double / float / decimal(m,d) 定点数，m表示总字位数，最大65；d表示小数点后面的位数，最大30
+- 字符串 varchar（变长） / char（定长） / text（大文本）
+- 时间日期 date
