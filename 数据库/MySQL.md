@@ -248,3 +248,195 @@ MySQL具有多种引擎，并且它已打包多个引擎，且都隐藏在MySQL�
 ```sql
 create table 新表名 as select 语句;
 ```
+
+## MySQL 常见的函数
+
+### 常见的数学函数
+
+#### 取整
+
+- `round(x[, d])`： 四舍五入保留小数位
+  - x：要保留小数的数字
+  - d：**保留多少位小数**，默认 0，可选
+- `floor(x)`：向下取整
+  - x：向下取整的数字
+- `ceil(x)`：向上取整
+  - x：向上取整的数字
+
+#### 数学运算
+
+- `mod(x, y)`: x % y, 取模
+- `pow(x, y)`：$x^y$, 幂运算
+
+#### 随机数
+
+- `rand([seed])`：随机数，范围 $[0, 1)$
+  - seed：随机种子
+
+### 常见的字符串函数
+
+#### 保留小数
+
+- `format(x, d[, loacle])`
+  - x：要格式化的数字
+  - d：**保留多少位小数**
+  - locale：地区，可选，默认en_US,用来控制千位分隔符
+
+#### 大小写转换
+
+- `lower(str)`：全部转小写，只对英文生效，中文、数字、符号不受影响，返回新字符串，不会修改元彪数据，常用于忽略大小写匹配
+  - str：字符串
+- `upper(str)`：全部转大写，同 `lower(str)`
+
+#### 字符串的反转与重复
+
+- `reverse(str)`：反转字符串
+- `repeat(str, count)`：重复
+  - str：字符串
+  - count：重复次数
+
+#### 拼接字符串
+
+- `concat(str1, str2[, ...])`：拼接字符串
+- `concat_ws(ws, str1, str2[, ...])`：带分隔符的拼接字符串
+  - ws：分隔符
+
+#### 替换字符串
+
+- `replace(str, old_str, new_str)`：替换字符串
+  - str：原始字符串
+  - old_str：要被替换的字符串
+  - new_str：用来替换的字符串
+
+#### 截取字符串
+
+- `substr(str, pos[, len])`：截取字符串
+  - str：源字符串
+  - pos：起始位置，**从1开始计数**
+  - len：可选，截取多少字符，默认截取到字符串尾
+- `substring(str, pos[, len])`：`substr`的别名
+- `left(str, len)`：从字符串 **最左侧** 截取字符串
+  - str：源字符串
+  - len：截取多少字符
+- `right(str, len)`：从字符串 **最右侧** 截取字符串
+  - str：源字符串
+  - len：截取多少字符
+
+#### 获取字符串长度
+
+- `char_length(str)`：返回字符串的 **字符个数** ，**一个汉字、字母都算 1**
+  - 字符串
+- `length(str)`：返回字符串占用的 **字节数** ，不是字符个数。
+  - str：字符串
+  - utf8 编码规则：
+    - 一个英文字母占一个字节
+    - 一个汉字占三个字节
+    - 一个数字占一个字节
+    - 一个半角符号占一个字节
+    - 空串 `''` 返回 0
+    - NULL 返回 NULL
+
+### 时间日期函数
+
+#### 获取当前时间的函数
+
+- `now()`：返回当前服务器的日期 + 时间（datetime类型，`YYYY-MM-DD HH:MM:SS`）
+- `current_date()`：返回当前日期，不带时分秒，格式 `YYYY-MM-DD`
+- `current_time()`：返回当前时间（只有时分秒，没有日期），格式 `HH-MM-SS`
+
+#### 获取部分时间
+
+- `year(date)`：从日期里提取年份，返回 4 位数字
+  - date：日期，类型为
+    - `DATE`：`YYYY-MM-DD`
+    - `DATETIME / TIMESTAMP`：`YYYY-MM-DD HH:MM:SS`
+    - 合格日期字符串
+- `month(date)`：月份（1 ~ 12）
+- `day(date)`：天（1 ~ 31）
+- `hour(date)`：小时
+- `minute(date)`：分钟
+- `second(date)`：秒
+- `weekday(date)`：周
+
+#### 计算时间差
+
+- `date_add(date, interval 数值 单位)`：给日期加上一段时间，返回新日期
+  - date：基础日期
+  - interval：关键字，不能省略，代表时间间隔
+  - 数值：正数 = 往后加，负数 = 往前减
+  - 单位：
+    - year
+    - month
+    - day
+    - hour
+    - minute
+    - second
+- `date_sub(date, interval 数值 单位)`：从指定日期减去一段时间
+  - date：基准日期
+  - interval：关键字，不能省略
+  - 数值：正数 = 往前减，负数 = 往后加
+  - 单位：
+    - year
+    - month
+    - day
+    - hour
+    - minute
+    - second
+- `datediff(expr1, expr2)`：计算 expr1 - expr2，返回相差的天数，只比较日期部分，忽略时分秒
+  - expr1：结束日期
+  - expr2：开始日期
+- `timestampdiff(单位, 开始时间, 结束时间)`：计算 结束时间 - 开始时间，返回差值
+  - 单位:
+    - year
+    - month
+    - day
+    - hour
+    - minute
+    - second
+
+#### 时间 - 字符串转换
+
+- `date_format(date, 格式串)`：把日期 / 时间格式化，返回 **字符串**
+  - date：日期字段
+  - 格式串：
+    - `%Y`：4 位年 `2026`
+    - `%y`：2 位年 `26`
+    - `%m`：月份，带前导零 `01 ~ 12`
+    - `%c`：月份，不带零 `1 ~ 12`
+    - `%d`：日期，带前导零 `01 ~ 31`
+    - `%e`：日期，不带零 `1 ~ 31`
+    - `%H`：24小时制 `00 ~23`
+    - `%i`：分钟 `00 ~ 59`
+    - `%s`：秒 `00 ~ 59`
+- `str_to_date(str, 格式模板)`：把 字符串 转为日期 / 时间类型，是 `date_format()` 的反向函数。
+  - str：日期字符串
+  - 格式模板：同 `date_format()`
+
+#### 时间 - 整数转换
+
+- `unix_timestamp(date)`：日期时间转换成 **时间戳** （从 1970-01-01 00:00:00 UTC 起算的秒数，整数）
+  - date：日期/日期字符串
+  - 注意：`unix_timestamp(0)` 在中国为 `1970-01-01 08:00:00` ，因为中国在东八区，比 UTC 多8小时
+- `from_unixtime(timestamp[, format])`：时间戳转换成 **时间日期**
+  - timestamp：10位数字（秒）
+  - format：可选，格式化字符串
+
+### `IF(表达式, 为真的值, 为假的值)` 函数
+
+**MySQL独有** ，不是标准SQL
+
+**单行函数** ，用在 `SELECT / WHERE` 里
+
+```sql
+if(条件1, 值1, 值2)
+```
+
+条件1为真，返回值1；
+条件1为假/NULL，返回值2
+
+### `IFNULL(表达式, 替换值)` 函数
+
+如果表达式为NULL，则返回替换值，否则为表达式的值。
+
+只判断NULL，不会把 0 、 空字符串当成假，和if()不一样
+
