@@ -440,3 +440,198 @@ if(条件1, 值1, 值2)
 
 只判断NULL，不会把 0 、 空字符串当成假，和if()不一样
 
+### 窗口函数
+
+窗口函数(Window Function)，对 **分区内的子集行** 做计算，**不会合并压缩行数**（和 `group by`）最大区别
+
+- `group by`：多行合并成**1行**，输出行数变少
+- 窗口函数：原有全部行保留，**新增一列计算结果**
+- 窗口：`over()`定义的数据集范围，叫窗口；窗口可以用 `partition by`切分多个分区
+
+语法结构：
+
+![](../assets/2026-09-30-10-11-20.png)
+
+```sql
+窗口函数 (参数) over (
+  [partition by 列1, 列2, ...] -- 分区(分组)，可选
+  [order by 列1, 列2, ...] -- 分区内排序，可选
+  [frame子句] -- 帧：在有序分区里划定更小的计算范围，可选
+) as 别名
+```
+
+- `partition by 分区`：把整张表 **切成多个独立分区**，窗口计算 **在每个分区内部单独执行**
+  - 省略：整张表作为 **1 个大分区**
+  - 支持多列：`partition by dept, city`，只有两个字段全都相同，才属于同一分区
+  - > 类比：`group by`，但是 **不合并行**
+- `order by`：**分区内排序**，只对当前分区内部的数据排序，不影响最终整个 SQL 结果集的顺序
+  - 支持多列：`order by score desc, id asc`，分数相同按id升序
+  - **关键** ：**一旦写了 `over` 内的 `order by` ，帧子句会自动启用默认范围**
+- `frame帧子句`（**重难点!!**）
+  - 帧 = 在有序分区里，在框选 **更小的行集合**，用于聚合类窗口函数(`sum/avg/last_value`)
+  - > 只有聚合窗口函数会用到帧，排名函数 `row_number/rank/dense_rank`会忽略帧
+  - 关键字：
+    - `unbounded perceding`：分区 **第一行**
+    - `n preceding`：当前行向上（前面）n行
+    - `current row`：当前这一行
+    - `n following`：当前行向下（后面）n行
+    - `unbounded following`：分区 **最后一行**
+  - 两种帧模式
+    - 1. `rows between`：**物理行**，按行数计数(推荐，直观)
+    ```sql
+    -- 当前行 + 上面2行，共3行，滑动窗口
+    ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+    ```
+    - 2. `range between`：**按 `order by 字段的值`** ，相同值视为同一范围，同一范围的值一起运算
+    > **默认帧**（over 里写 order by）字段的值，相同值视为同一范围
+    ```sql
+    -- 分区第一行～当前行
+    RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ```
+
+#### 窗口函数的分类
+
+##### 序号函数
+
+###### `row_number()`
+
+排序：1, 2, 3
+
+例：
+
+```sql
+select
+    eid,
+    ename,
+    salary,
+    row_number() over (partition by dname order by salary) rn
+from
+    employee;
+```
+
+![](../assets/2026-09-30-10-36-56.png)
+
+###### `rank()`
+
+排序：1, 1, 3
+
+例：
+
+```sql
+select
+    eid,
+    ename,
+    salary,
+    rank() over (partition by dname order by salary) rn
+from
+    employee;
+```
+
+![](../assets/2026-09-30-10-43-24.png)
+
+
+###### `dense_rank()`
+
+排序：1, 1, 2
+
+例：
+
+```sql
+select
+    eid,
+    ename,
+    salary,
+    dense_rank() over (partition by dname order by salary) rn
+from
+    employee;
+```
+
+![](../assets/2026-09-30-10-45-17.png)
+
+##### 前后函数
+
+###### `lag(expr[, n] [, default])`
+
+返回当前行的前n行的expr的值，默认为1
+
+```sql
+LAG(score, 2, 0) OVER(PARTITION BY user_id ORDER BY dt)
+```
+
+###### `lead(expr[, n] [, default])`
+
+返回当前行的后n行的expr的值，默认为1
+
+```sql
+LEAD(score, 2, 0) OVER(PARTITION BY user_id ORDER BY dt)
+```
+
+##### 头尾函数
+
+###### `first_value(expr)`
+
+返回第一个expr的值
+
+###### `last_value(expr)`
+
+返回最后一个expr的值
+
+##### 其他函数
+
+###### `nth_value(expr, n)`
+
+返回窗口中第n个expt的值
+
+###### `ntile(n)`
+
+将有序数据分为 n 个桶，记录等级数，放回当前属于第几组，适合抽样函数
+
+> over 里面必须写 order by
+> 分组顺序：像斗地主发牌一样将 **有序** 的记录 **轮流** 分组
+
+#### 开窗聚合函数(max/min/avg/sum/count)
+
+窗口函数默认计算范围：
+
+1. 不分组、不排序，计算全表
+
+```sql
+select
+    eid,
+    ename,
+    salary,
+    sum(salary) over () sal_sum
+from
+    employee;
+```
+
+![](../assets/2026-09-30-11-20-38.png)
+
+2. 分组、不排序，计算分组
+
+```sql
+select
+    eid,
+    ename,
+    salary,
+    sum(salary) over (partition by dname) sal_sum
+from
+    employee;
+```
+
+![](../assets/2026-09-30-11-21-22.png)
+
+3. 分组、排序，计算当前行到该分组的第一行
+
+```sql
+select
+    eid,
+    ename,
+    hiredate,
+    salary,
+    sum(salary) over (partition by dname order by hiredate) sal_sum
+from
+    employee;
+```
+
+![](../assets/2026-09-30-11-22-39.png)
