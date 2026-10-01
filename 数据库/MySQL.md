@@ -495,6 +495,9 @@ if(条件1, 值1, 值2)
 
 ###### `row_number()`
 
+在每个分区内，根据排序，**给每一行分配唯一、连续的序号**。
+**就算值相同（并列），序号也不一样，不会重复，也不会跳号**
+
 排序：1, 2, 3
 
 例：
@@ -512,6 +515,8 @@ from
 ![](../assets/2026-09-30-10-36-56.png)
 
 ###### `rank()`
+
+遇到并列，**会跳过后面名次**
 
 排序：1, 1, 3
 
@@ -531,6 +536,8 @@ from
 
 
 ###### `dense_rank()`
+
+遇到并列，**不跳号，连续排名**
 
 排序：1, 1, 2
 
@@ -552,7 +559,7 @@ from
 
 ###### `lag(expr[, n] [, default])`
 
-返回当前行的前n行的expr的值，默认为1
+返回窗口内当前行的前n行的expr的值，默认为1
 
 ```sql
 LAG(score, 2, 0) OVER(PARTITION BY user_id ORDER BY dt)
@@ -560,7 +567,7 @@ LAG(score, 2, 0) OVER(PARTITION BY user_id ORDER BY dt)
 
 ###### `lead(expr[, n] [, default])`
 
-返回当前行的后n行的expr的值，默认为1
+返回窗口内当前行的后n行的expr的值，默认为1
 
 ```sql
 LEAD(score, 2, 0) OVER(PARTITION BY user_id ORDER BY dt)
@@ -570,11 +577,11 @@ LEAD(score, 2, 0) OVER(PARTITION BY user_id ORDER BY dt)
 
 ###### `first_value(expr)`
 
-返回第一个expr的值
+返回窗口第一个expr的值
 
 ###### `last_value(expr)`
 
-返回最后一个expr的值
+返回窗口最后一个expr的值
 
 ##### 其他函数
 
@@ -584,7 +591,7 @@ LEAD(score, 2, 0) OVER(PARTITION BY user_id ORDER BY dt)
 
 ###### `ntile(n)`
 
-将有序数据分为 n 个桶，记录等级数，放回当前属于第几组，适合抽样函数
+将窗口内有序数据分为 n 个桶，记录等级数，放回当前属于第几组，适合抽样函数
 
 > over 里面必须写 order by
 > 分组顺序：像斗地主发牌一样将 **有序** 的记录 **轮流** 分组
@@ -635,3 +642,386 @@ from
 ```
 
 ![](../assets/2026-09-30-11-22-39.png)
+
+
+## MySQL 的索引
+
+### 索引是什么？
+
+索引是通过某种算法，构建出一个数据模型，用于快速找出在某个列中有以特定值的行，不使用索引，MySQL必须从第一条记录开始读完整个表，直到找出相关的行，表越大，查询数据所花费的事件就越多，如果表中查询的列有一个索引，MySQL能够快速到达一个位置去搜索数据文件，而不必查看所有数据，那么将会节省很大一部分时间。
+
+索引相当于 **书的目录**，帮数据库快速定位行，避免全表扫描（`全表扫描 = 扫完整本书`）。
+
+- 优点：加快查询速度
+- 缺点：占用磁盘空间；**写操作(insert/update/delete)变慢** ，因为要维护 B+ 树。
+
+**索引有主流两种方式索引方式：Hash索引 和 B+ 树索引**
+
+### InnoDB两大索引类型：聚簇索引、二级索引（非聚簇）
+
+#### 聚簇索引（主键索引）
+
+- InnoDB **必须有聚簇索引**，把 **整行数据存在 B+ 树叶子节点**
+- 叶子节点 = 完整一行数据；索引 key 就是主键
+- 规则：
+  - 1. 有主键：主键作为聚簇索引
+  - 2. 没有主键：找第一个非空索引当聚簇索引
+  - 3. 都没有：MySQL自动生成隐藏 rowid 作为聚簇索引
+
+> 聚簇索引的叶子节点存的是完整数据
+
+#### 二级索引（普通索引、联合索引、唯一索引都属于二级索引）
+
+二级索引 B+ 树叶子节点不存完整数据，只存 **索引列的值 + 主键**
+
+- 查询流程：
+  - 1. 在二级索引树找到索引值，拿到主键
+  - 2. 拿着主键去聚簇索引树查找完整行 -> 这个过程叫回表
+
+> 例子：`INDEX idx_name(name)`
+> 查：`select * from t where name = 'xxx'`
+> 二级索引找到name，拿到主键 id，再用 id 去主键索引拿全部字段 -> 回表
+
+**覆盖索引(高频考点)**
+
+查询需要的 **所有列都在二级索引里面**，不需要回表，性最好。
+
+```sql
+-- 建立联合索引 idx_name_score(name, score)
+SELECT name,score FROM t WHERE name='aaa';
+-- 只查name和score，索引里直接有，不用回表 → 覆盖索引
+```
+
+### 索引分类（按用途）
+
+#### 主键索引 primary key
+
+聚簇索引，唯一、非空，一张表只能 1 个
+
+#### 唯一索引 unique
+
+二级索引，列值不能重复，允许NULL
+
+#### 普通索引 index
+
+最基础，仅加速查询，允许重复、允许 null
+
+#### 联合索引（复合索引）
+
+多个字段一起建索引 `index idx_ab(a, b, c)`
+
+> 最左前缀原则：联合索引 `(a, b, c)` ，支持
+> ![](../assets/2026-09-30-16-44-18.png)
+
+#### 全文索引 fulltext
+
+长文本模糊搜索，代替 `like '%xxx%'`
+
+#### 空间索引 spatial
+
+地理坐标，极少用
+
+### 索引失效常见坑(面试必考)
+
+1. 索引列做 **运算、函数、隐式类型转换**
+
+```sql
+-- 失效
+WHERE YEAR(create_time) = 2026;
+WHERE id +1 = 100;
+WHERE phone = 123456; -- phone是字符串，写成数字，隐式转换
+```
+
+2. `like '%关键词'` 前缀通配 (`like 'abc%'`可以走索引)
+3. OR 连接条件，一侧没有索引(`where a=1 or b=2`, b 无索引则整体失效)
+4. 违反 **最左前缀** （联合索引跳过左边字段）
+5. MySQL 优化器判断：走索引不如全表扫描快（比如查询大部分数据，>20% 左右），主动放弃索引
+
+### 索引设计原则
+
+#### 适合建索引：
+
+- where、join、order by、group by 经常用到的字段
+- 区分度高的列（性别这种有只有 0 / 1 的低区分度，不要建索引）
+
+#### 不要建索引：
+
+- 频繁更新的字段（维护 B+ 树代价高）
+- 重复值多、区分度极低（性别、状态）
+
+### B+ 树简单对比 B 树
+
+- B+ 树：只有叶子节点存数据；非叶子只存索引 key；叶子节点链表相连，范围查询强（InnoDB 选用）
+- B 树：所有节点都存完整数据，范围查询差
+
+### 查看索引是否生效
+
+```sql
+explain select * from t where name = 'xxx';
+```
+
+返回结果表看 `type` 、`key`字段：
+
+- `key` 不为NULL：使用索引
+- `type = ALL`全表扫描（没有索引）
+
+
+### MySQL 索引相关操作
+
+> 前提：InnoDB，注意：**主键索引不能用普通 ALTER INDEX 修改**，主键要删主键再重建。
+
+#### 1、查看索引
+
+##### 方法一：`show index`（最常用）
+
+```sql
+SHOW INDEX FROM 表名;
+-- 等价
+SHOW KEYS FROM 表名;
+```
+
+示例：
+
+```sql
+SHOW INDEX FROM t_score;
+```
+
+字段说明：
+
+- `key_name`：索引名字
+- `Seq_in_index`：联合索引里字段顺序
+- `Column_name`：索引列
+- `Non_unique`：0 = 唯一索引，1 = 普通索引
+
+##### 方法二：`desc / describe` （简略看）
+
+```sql
+desc t_score;
+```
+
+Key 列：`PRI`主键，`UNI`唯一，`MUL`普通索引
+
+##### 方法三：`information_schema`（适合脚本查询）
+
+```sql
+SELECT * FROM information_schema.STATISTICS 
+WHERE TABLE_SCHEMA='你的库名' AND TABLE_NAME='t_score';
+```
+
+#### 2、创建索引
+
+![](../assets/2026-09-30-17-12-46.png)
+
+##### 1、建表的时候直接创建索引
+
+```sql
+CREATE TABLE t_student(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50),
+    age INT,
+    -- 普通索引
+    INDEX idx_name (name),
+    -- 联合索引
+    INDEX idx_name_age (name,age),
+    -- 唯一索引
+    UNIQUE INDEX uk_phone(phone)
+);
+```
+
+##### 2、表已经存在，新增索引(alter 或者 create index)
+
+- 普通索引
+
+```sql
+-- 写法1 CREATE INDEX（推荐，语义清晰）
+CREATE INDEX idx_name ON t_student(name);
+
+-- 写法2 ALTER TABLE ... ADD INDEX
+ALTER TABLE t_student ADD INDEX idx_name(name);
+```
+
+- 唯一索引
+
+```sql
+CREATE UNIQUE INDEX uk_phone ON t_student(phone);
+```
+
+- 联合索引
+
+```sql
+CREATE INDEX idx_name_age ON t_student(name, age);
+```
+
+- 主键索引特殊：
+
+```sql
+ALTER TABLE t_student ADD PRIMARY KEY (id);
+```
+
+#### 3、删除索引
+
+- 普通索引 / 唯一索引
+
+```sql
+-- 写法1 DROP INDEX
+DROP INDEX idx_name ON t_student;
+
+-- 写法2 ALTER TABLE DROP INDEX
+ALTER TABLE t_student DROP INDEX idx_name;
+```
+
+- 删除主键索引
+
+```sql
+ALTER TABLE t_student DROP PRIMARY KEY;
+```
+
+> 如果主键是自增`AUTO_INCREMENT`，**必须先去掉自增属性，才能删主键**
+
+#### 4、修改索引
+
+MySQL 没有 ALTER INDEX 直接修改索引字段！
+
+> 不能直接改现有索引，**只能：先删旧索引，再新建索引**
+
+```sql
+-- 需求：把 idx_name(name) 修改成 idx_name_age(name,age)
+DROP INDEX idx_name ON t_student;
+CREATE INDEX idx_name_age ON t_student(name,age);
+```
+
+> 补充：可以修改索引的可见性（8.0+），这个属于修改索引属性，不是改字段
+
+```sql
+-- 索引不可见，优化器不再使用，用于测试，不删除索引
+ALTER TABLE t_student ALTER INDEX idx_name INVISIBLE;
+-- 恢复可见
+ALTER TABLE t_student ALTER INDEX idx_name VISIBLE;
+```
+
+**小注意事项**
+
+1. 索引名字**同一张表不能重复**
+2. 大表建索引会锁表（MySQL5.6 + 支持 Online DDL，减少锁）
+3. 建索引尽量选业务低峰，大量数据时耗时久
+
+
+## MySQL 的事务
+
+### 事务是什么？
+
+**事务（Transaction）**：一组SQL语句，**要么全部执行成功，要么全部失败回滚**，不可只执行一半
+
+> 经典例子：转账，A 扣 100，B 加 100。不能出现 A 扣钱了，B 没收到。
+
+**一句话速记**
+
+事务是一组 SQL，ACID 四大特性；并发会产生脏读、不可重复读、幻读；MySQL 默认隔离级别 RR 可重复读，靠 MVCC + 锁实现，redo 保证持久，undo 保证回滚。
+
+### 事务四大特性 ACID（面试必备）
+
+#### 1、A 原子性 Atomicity
+
+事务是最小单元，不可拆分。全部成功，或者全部回滚，不会出现做一半。
+
+由 **undo log(回滚日志)** 实现。
+
+#### 2、C 一致性 Consistency
+
+事务执行前后，数据的完整性保持一致。
+
+转帐前总金额 = 转账后总金额，不会凭空多出 / 消失钱。
+
+原子、隔离、持久性共同保证一致性。
+
+#### 3、I 隔离性 Isolation
+
+多个事务并发执行，互相之间隔离，互不干扰。
+
+核心难点，由 **锁 + MVCC** 实现。
+
+#### 4、D 持久性 Durability
+
+事务提交成功后，修改永久写入磁盘，宕机也不会丢失。
+
+由 **redo log(重做日志)** 实现。
+
+### 事务基础语法
+
+```sql
+-- 查看MySQL自动提交事务是否开启
+-- autocommit=1（默认）：没执行一条 DML（insert / update / delete），自动提交事务，每条语句单独是一个事务
+-- autocommit=0：关闭自动提交，所有 DML 修改都需要手动执行 commit 才永久生效；没 commit，其他会话看不到你的修改，可 rollback 回滚 
+select @@autocommit;
+
+-- 关闭自动提交，设为手动
+-- 注意：set autocommit = 0 是会话级别，只对当前数据库连接生效，新开连接恢复默认 1 。
+set autocommit = 0;
+
+-- 开启事务
+START TRANSACTION;
+-- 或者 BEGIN;
+-- 不写start transaction / begin 也可以，因为执行DML就进入事务
+
+-- 这里写多条DML语句（INSERT UPDATE DELETE）
+UPDATE account SET money=money-100 WHERE id=1;
+UPDATE account SET money=money+100 WHERE id=2;
+
+-- 提交事务，永久生效
+COMMIT;
+
+-- 回滚：撤销本次事务所有修改（未提交才有效）
+ROLLBACK;
+```
+
+> 执行 `commit` 或者 `rollback` 之后，本次事务结束。
+> DDL(create/alter/drop) 会自动提交事务，不要放在事务中间。
+
+![](../assets/2026-09-30-17-47-54.png)
+
+### 并发事务带来 3 个问题
+
+#### 1、脏读
+
+事务 A 读到事务 B **未提交** 的数据。B 最后回滚，A 读到的就是脏数据。
+
+#### 2、不可重复读
+
+同一个事务 A 内，**两次读取同一行**，中间事务 B 修改并提交，两次结果不一样。（重点：**同一行数据被修改**）
+
+#### 3、幻读
+
+事务 A 查询一批数据，事务 B 插入 / 删除新行并提交，A 再次查询发现多 / 少了行。（重点：**行数变了，新增 / 消失记录**）
+
+### 4 种隔离级别（从低到高）
+
+| **隔离级别** | **脏读** | **不可重复读** | **幻读** |
+|---|---|---|---|
+| READ UNCOMMITTED (读未提交) | 存在 | 存在 | 存在 |
+| READ COMMITTED (读已提交) | 解决 | 存在 | 存在 |
+| REPEATABLE READ (可重复读 RR，MySQL **默认级**) | 解决 | 解决 | 大部分解决，存在间隙锁幻读场景 |
+| SERIALIZABLE (串行化) | 解决 | 解决 | 解决 |
+
+> MySQL InnoDB 默认 RR(可重复读)，依靠 **MVCC + 间隙锁** 很大程度解决幻读。
+> 隔离级别越高，并发性能越差。
+
+### 两个核心日志（redo log / undo log）
+
+- **redo log（重做日志）** ：**保证持久性 D**
+写数据先写 redo log，在刷磁盘。宕机重启，根据redo log 恢复已提交事务。
+
+- **undo log（回滚日志）** ：**保证原子性 A，MVCC 依赖**
+保存数据修改前的快照，rollback 时用 undo log 恢复旧数据；同时实现多版本读
+
+### MVCC 多版本并发控制（RR、RC 底层实现）
+
+不加锁实现读，提升并发
+
+- 每行数据有多个版本，通过 undo log 保存历史版本
+- 读操作：读快照版本（快照读，不加锁）
+- 更新操作：锁当前最新行（当前读，加锁）
+
+### 快照读 vs 当前读
+
+- 快照读：普通 `select` ，读历史快照，不加锁，MVCC实现
+- 当前读：`select ...for update / update / delete / insert` ，读取最新数据，加行锁
