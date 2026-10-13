@@ -43,3 +43,61 @@ net.apply(init_weights) # net.apply(func)：遍历网络所有层，每层实例
 
 解决这个问题的一个技巧是：在继续 softmax 计算之前，先从所有 $o_k$ 中减去 $\max(o_k)$ 。这里可以看到每个 $o_k$ 按常数进行的的移动不会改变 softmax 的返回值：
 
+$$
+\begin{align*}
+    \displaystyle \hat{y_j} 
+    &= \frac{\exp(o_j - \max(o_k)) \exp(\max(o_k))}{\sum_k \exp(o_k - \max(o_k))\exp(\max(o_k))} \\
+    &= \frac{\exp(o_j - \max(o_k))}{\sum_k \exp(o_k - \max(o_k))}
+\end{align*}
+$$
+
+在减法和规范化步骤之后，可能有些 $o_j - \max(o_k)$ 具有较大的负值。由于精度受限，$\exp(o_j - \max(o_k))$ 将有接近零的值，即 **下溢(underflow)** 。这些值可能会四舍五入为零，使 $\hat{y_j}$ 为零，并且使得 $\log(\hat{y_j})$ 的值为 $- \inf$ 。反向传播几步后，我们可能会发现自己面对一屏幕可怕的 nan 结果。
+
+尽管我们要计算指数函数，但我们最终在计算交叉熵损失时会取他们的对数。通过将 softmax 和交叉熵结合在一起，可以避免反向传播过程中可能会困扰我们的数值稳定性问题。如下面的等式所示，我们避免计算 $\exp(o_j - \max(o_k))$ ，而可以直接使用 $o_j - \max(o_k)$ ，因为 $\log (\exp(·))$ 被抵消了。
+
+$$
+\begin{align*}
+    \displaystyle \log(\hat{y_j}) 
+    &= \log(\frac{\exp(o_j - \max(o_k))}{\sum_k \exp(o_k - \max(o_k))}) \\
+    &= \log(\exp(o_j - \max(o_k))) - \log(\sum_k \exp(o_k - \max(o_k))) \\
+    &= o_j - \max(o_k) - \log(\sum_k \exp(o_k - \max(o_k)))
+\end{align*}
+$$
+
+我们也希望保留传统 softmax 函数，以备我们需要评估通过模型输出的概率。但是，我们没有将 softmax 概率传递到损失函数中，而是在交叉熵损失函数中传递未规范化的预测，并同时计算 softmax 及其对数，这是一种类似 "LogSumExp技巧" 的聪明方式。
+
+```python
+loss = nn.CrossEntropyLoss(reduction='none')
+```
+
+> `reduction` 控制损失怎么聚合：
+> - `reduction='none'`：**不做任何求和/平均**，返回每个样本单独的loss，形状和标签 y 一样
+> - `reduction='mean'`（默认）：所有样本 loss 求均值
+> - `reduction='sum'`：所有样本的loss全部加和
+
+## 优化算法
+
+在这里，我们使用学习率为 0.1 的小批量随机梯度下降作为优化算法。这与我们在线性回归例子中的相同，这说明了优化器的普适性。
+
+```python
+trainer = torch.optim.SGD(net.parameters(), lr=0.1)
+```
+
+## 训练
+
+接下来我们调用从零开始softmax回归中定义的训练函数来训练模型
+
+```python
+num_epochs = 10
+d2l.train_ch3(net, train_iter, test_iter, loss, num_epochs, trainer)
+```
+
+![](../../assets/2026-10-13-12-04-45.png)
+
+和以前一样，这个算法使结果收敛到一个相当高的精度，而且这次的代码比之前更精简了。
+
+## 小结
+
+- 使用深度学习框架的高级 API ，我们可以更简洁地实现 softmax 回归
+- 从计算的角度来看，实现 softmax 回归比较复杂。在许多情况下，深度学习框架在这些著名的技巧之外采取了额外的预防措施，来确保数值的稳定性。这使我们避免了在实践中从零开始编写模型时可能遇到的陷阱。
+
