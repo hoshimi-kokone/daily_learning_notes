@@ -241,6 +241,29 @@ tail -F app.log           # 实时跟踪，文件重建也能跟上
 tail -n +100 a.txt        # 从第 100 行开始输出
 ```
 
+#### 分页查看：more 与 less
+
+| 命令 | 定位 | 说明 |
+|---|---|---|
+| cat | 全部输出 | 小文件、拼接、配合管道 |
+| more | 只能向前翻 | 老式分页器，POSIX 标准，精简系统保底 |
+| less | 前后翻 + 搜索 + 跟踪 | 日常首选，`man` 的默认分页器 |
+| head / tail | 头/尾若干行 | `tail -f` 跟踪日志 |
+
+```bash
+more app.log            # 空格下一屏，Enter 下一行，/ 搜索，q 退出
+                        # 多数实现不能往回翻，也不能反向搜索
+
+less app.log            # 空格翻页，b 上一页，g 开头，G 结尾
+                        # / 向下搜，? 向上搜，n/N 跳转匹配，q 退出
+less -N app.log         # 显示行号
+less -S app.log         # 长行不折行，左右滚动
+less -R app.log         # 保留颜色（看彩色日志必加）
+less +F app.log         # 打开即跟踪（等价 tail -f），Ctrl+C 退出跟踪
+```
+
+`less` 里还能按 `&error` 只显示匹配行（再按 `&` 回车恢复全量），比 `grep | less` 更灵活。
+
 ```bash
 # 常见组合：看日志最后 100 行并持续跟踪
 tail -n 100 -f /var/log/nginx/access.log
