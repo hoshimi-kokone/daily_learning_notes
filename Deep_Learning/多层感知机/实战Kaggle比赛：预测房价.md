@@ -156,7 +156,7 @@ print(test_data.shape)
 (1459, 80)
 ```
 
-让我们看看前四个和最后两个特征，以及相应标签 (房价)
+让我们看看前四行数据的前四个特征、最后两个特征，以及相应标签 (房价)
 
 ```python
 print(train_data.iloc[0:4, [0, 1, 2, 3, -3, -2, -1]])
@@ -202,7 +202,7 @@ all_features[numeric_features] = all_features[numeric_features].fillna(0)
 
 ```python
 # “Dummy_na=True”将“na”(缺失值)视为有效的特征值，并为其创建指示符特征
-all_features = pd.get_dummies(all_features, dummy_na=True)
+all_features = pd.get_dummies(all_features, dummy_na=True).astype('float32')
 print(all_features.shape)
 ```
 
